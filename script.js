@@ -1,21 +1,19 @@
 /**
  * PROTOCOLO CIDADANIA DIGITAL & IA - ENGINE DE INTERATIVIDADE
- * Desenvolvido para index.html (Tailwind CSS + Chart.js)
+ * Código adaptado para funcionar nativamente com o index.html anterior
  */
 
-// Instância global do gráfico para controle de estados
+// Instância global do gráfico
 let radarChart;
 
-/**
- * Inicializa os componentes assim que o DOM estiver totalmente carregado
- */
+// Inicialização automatizada assim que a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     inicializarGrafico();
-    configurarFiltrosIniciais();
+    configurarAnimacoesCards();
 });
 
 /**
- * Configura e renderiza o Gráfico de Radar usando a biblioteca Chart.js
+ * Configura e renderiza o Gráfico de Radar usando Chart.js
  */
 function inicializarGrafico() {
     const ctx = document.getElementById('radarChart');
@@ -27,7 +25,7 @@ function inicializarGrafico() {
             labels: ['Dados/Privacidade', 'Combate a Vieses', 'Mídia/Fatos'],
             datasets: [{
                 label: 'Índice de Consciência Atual',
-                data: [20, 20, 20], // Valores base iniciais
+                data: [20, 20, 20],
                 backgroundColor: 'rgba(6, 182, 212, 0.15)',
                 borderColor: 'rgba(6, 182, 212, 0.8)',
                 borderWidth: 2,
@@ -59,54 +57,51 @@ function inicializarGrafico() {
 }
 
 /**
- * Atualiza dinamicamente o gráfico baseado nas checkboxes selecionadas
+ * Função global chamada pelas checkboxes no HTML (onchange="atualizarGrafico()")
  */
-function atualizarGrafico() {
+window.atualizarGrafico = function() {
     if (!radarChart) return;
 
     const checkboxes = document.querySelectorAll('#metricas-checklist input[type="checkbox"]');
-    let novosValores = [20, 20, 20]; // Reset para valores padrão
+    let novosValores = [20, 20, 20];
 
     checkboxes.forEach((box) => {
         if (box.checked) {
             const index = parseInt(box.getAttribute('data-index'));
-            novosValores[index] = 100; // Eleva a pontuação do eixo correspondente
+            if (!isNaN(index)) {
+                novosValores[index] = 100;
+            }
         }
     });
 
-    // Aplica os novos dados com animação nativa do Chart.js
     radarChart.data.datasets[0].data = novosValores;
     radarChart.update();
-}
+};
 
 /**
- * Filtra os cards de diretrizes por categoria com efeito visual de transição
- * @param {string} categoria - A categoria selecionada (todos, privacidade, etica, seguranca)
- * @param {HTMLElement} botaoAtivo - O botão que disparou o evento de clique
+ * Função global chamada pelos botões no HTML (onclick="filtrarCards('categoria')")
  */
-function filtrarCards(categoria, botaoAtivo) {
+window.filtrarCards = function(categoria) {
     const cards = document.querySelectorAll('.card-item');
     const botoes = document.querySelectorAll('.filter-btn');
 
-    // 1. Atualiza os estados visuais dos botões de filtro
-    botoes.forEach(btn => {
-        btn.classList.remove('bg-cyan-500', 'text-slate-950');
-        btn.classList.add('text-slate-400', 'hover:text-white');
-    });
-
-    // Se o botão foi passado diretamente pelo evento inline
-    if (botaoAtivo) {
+    // Identifica e atualiza o botão ativo capturando o evento global do clique
+    if (window.event && window.event.currentTarget) {
+        const botaoAtivo = window.event.currentTarget;
+        botoes.forEach(btn => {
+            btn.classList.remove('bg-cyan-500', 'text-slate-950');
+            btn.classList.add('text-slate-400', 'hover:text-white');
+        });
         botaoAtivo.classList.add('bg-cyan-500', 'text-slate-950');
         botaoAtivo.classList.remove('text-slate-400', 'hover:text-white');
     }
 
-    // 2. Manipula a visibilidade dos cards com animação simples
+    // Gerencia a exibição e efeito visual dos cards
     cards.forEach(card => {
         const cardCategoria = card.getAttribute('data-category');
         
         if (categoria === 'todos' || cardCategoria === categoria) {
             card.style.display = 'block';
-            // Timeout garante que o display ocorra antes da transição de opacidade
             setTimeout(() => {
                 card.style.opacity = '1';
                 card.style.transform = 'scale(1)';
@@ -114,17 +109,20 @@ function filtrarCards(categoria, botaoAtivo) {
         } else {
             card.style.opacity = '0';
             card.style.transform = 'scale(0.95)';
-            card.style.display = 'none';
+            // Aguarda o fim da transição para ocultar o elemento completamente do layout
+            setTimeout(() => {
+                if (card.style.opacity === '0') card.style.display = 'none';
+            }, 300);
         }
     });
-}
+};
 
 /**
- * Configurações adicionais para manter os seletores consistentes
+ * Injeta propriedades de transição CSS nos cards via JS
  */
-function configurarFiltrosIniciais() {
+function configurarAnimacoesCards() {
     const cards = document.querySelectorAll('.card-item');
     cards.forEach(card => {
-        card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     });
 }
